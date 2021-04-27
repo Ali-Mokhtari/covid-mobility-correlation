@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+import csv
 
 path = '../data/'
 
@@ -104,15 +105,34 @@ for state in states:
 
 plt.show()
     
-states_merged_slice = states_merged[states_merged['date'] < '2020-11-01']
+states_merged_slice = states_merged[states_merged['date'] < '2020-07-31']
 states_merged_slice = states_merged_slice[states_merged_slice['date'] > '2020-05-01']
 
-states_m50_cases_slice = pd.DataFrame(data=
-                                      states_merged_slice.loc[:,
-                                                              ['state',
-                                                                'm50_avg',
-                                                                'cases_avg']])
+# states_m50_cases_slice = pd.DataFrame(data=
+#                                       states_merged_slice.loc[:,
+#                                                               ['state',
+#                                                                 'm50_avg',
+#                                                                 'cases_avg']])
 
+
+
+sl1 = states_merged_slice[
+    (states_merged_slice['date'] > '2020-05-01' ) &
+    (states_merged_slice['date'] < '2020-06-01')]
+sl1 = sl1.drop(['m50', 'cases', 'deaths','new_cases', 'difference'], axis = 1)
+
+sl1 = sl1.reset_index(drop=True)
+
+temp_df = states_merged_slice[
+    (states_merged_slice['date'] > '2020-07-01' ) &
+    (states_merged_slice['date'] < '2020-07-31')].reset_index(drop=True)
+temp_df = temp_df.drop(['m50', 'cases','deaths','new_cases','difference',
+                        'm50_avg'], axis = 1)
+temp_df = temp_df.reset_index(drop=True)
+
+states_m50_cases_slice = pd.DataFrame(data={'state':sl1['state'],
+                                            'm50_avg': sl1['m50_avg'], 
+                                            'cases_avg':temp_df['cases_avg'] })
 
 
 
@@ -151,16 +171,20 @@ for state in states:
 plt.show()
 
 count =0
-for state in states:
+with open('corr.csv','w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')    
     
-    print("\n\nState: " + state)
-    correlation  = states_m50_cases_slice[
-        states_m50_cases_slice['state']==state].corr(
-            method = 'pearson').loc['m50_avg', 'cases_avg']
-            
-    print(correlation)
-    if abs(correlation) > 0.4 :
-        count +=1
+    for state in states: 
+        if state !='Washington, D.C.':
+            print("\n\nState: " + state)
+            correlation  = states_m50_cases_slice[
+                states_m50_cases_slice['state']==state].corr(
+                    method = 'pearson').loc['m50_avg', 'cases_avg']
+                
+            writer.writerow([state, correlation])        
+            print(correlation)
+            if abs(correlation) > 0.75 :
+                count +=1
 
 print('count = '+ str(count))
 
