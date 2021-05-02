@@ -180,8 +180,8 @@ with open('corr.csv','w', newline='') as csvfile:
             correlation  = states_m50_cases_slice[
                 states_m50_cases_slice['state']==state].corr(
                     method = 'pearson').loc['m50_avg', 'cases_avg']
-                
-            writer.writerow([state, correlation])        
+            
+            writer.writerow([state, '{:1.2f}'.format(correlation)])        
             print(correlation)
             if abs(correlation) > 0.75 :
                 count +=1
